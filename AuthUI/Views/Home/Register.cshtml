@@ -1,0 +1,99 @@
+﻿@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h3>Register</h3>
+                </div>
+                <div class="card-body">
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required />
+                            <span class="text-danger small" style="display:block">Full Name is required!</span>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" required />
+                            <span class="text-danger small" style="display:block;"> Email is required!</span>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required />
+                            <span class="text-danger small" style="display:block;"> Password is required!</span>
+                        </div>
+                        <a href="/auth/login">Already have an account? Login</a>
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-primary w-100">Register</button>
+                        </div>
+                    </form>
+                    <div id="statusMessage" class="text-center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Validations
+    const fName = document.getElementById('name');
+    const vEmail = document.getElementById('email');
+    const vPassword = document.getElementById('password');
+    fName.addEventListener('input', function(){
+        const validationMessage = this.nextElementSibling;
+        if(fName.value.trim() === ''){
+            fName.nextElementSibling.style.display = 'block';
+        } else {
+            fName.nextElementSibling.style.display = 'none';
+        }
+    });
+    
+    vEmail.addEventListener('input', function(){
+        const validationMessage = this.nextElementSibling;
+        if(vEmail.value.trim() === ''){
+            vEmail.nextElementSibling.style.display = 'block';
+        } else {
+            vEmail.nextElementSibling.style.display = 'none';
+        }
+    });
+
+    vPassword.addEventListener('input', function(){
+        const validationMessage = this.nextElementSibling;
+        if(vPassword.value.trim() === ''){
+            vPassword.nextElementSibling.style.display = 'block';
+        } else {
+            vPassword.nextElementSibling.style.display = 'none';
+        }
+    });
+    // End
+
+    const registerFrom = document.getElementById('registerForm');
+    const statusMessage = document.getElementById('statusMessage');
+    const currentURL = 'https://localhost:7110';
+    const registerURL = currentURL + '/api/UserAuth/Register';
+    registerFrom.addEventListener('submit', async(e) =>{
+        e.preventDefault();
+        const Formdata = new FormData(registerFrom);
+        const data = Object.fromEntries(Formdata);
+        
+        const response = await fetch(registerURL,{
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        if(response.ok){
+            statusMessage.innerHTML = '<div class="alert alert-success">Registration successful!  Redirecting to login page...</div>';
+            // setTimeout(() => {
+            //     window.location.href = '/auth/login';
+            // }, 2000);
+        } else {
+            statusMessage.innerText = result.message;
+        }
+    });
+</script>
