@@ -74,7 +74,7 @@ namespace AuthAPI.Controllers
             }
 
             var token = GeneratedJwtToken(user);
-            return Ok(new { success = true, token });
+            return Ok(new { success = true, token, message = "Login Successfull!" });
         }
 
         [HttpPost("Logout")]
