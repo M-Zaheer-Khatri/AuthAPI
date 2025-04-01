@@ -1,0 +1,122 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+<style>
+    .bg-image-vertical {
+        position: relative;
+        overflow: hidden;
+        background-repeat: no-repeat;
+        background-position: right center;
+        background-size: auto 100%;
+    }
+
+</style>
+<link href="~/font-awesome/css/all.min.css" rel="stylesheet" />
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <i class="fa fa-sign-in"></i>
+                    <h3>Login</h3>
+                </div>
+                <div class="card-body">
+                    <form id="loginForm">
+                        <!-- Email Field -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" required />
+                            <span class="text-danger small" style="display:block;">Email is required!</span>
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required />
+                            <span class="text-danger small" style="display:block;">Password is required!</span>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-info w-100">Login</button>
+                        </div>
+
+                        <!-- Forgot Password and Register Links -->
+                        <p class="small text-center">
+                            <a href="#!" class="text-muted">Forgot password?</a>
+                        </p>
+                        <p class="text-center">
+                            Don't have an account? <a href="/Home/Register" class="link-info">Register here</a>
+                        </p>
+                    </form>
+                    <div id="statusMessage" class="text-center"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Image Section -->
+        <div class="col-md-4 d-none d-md-block">
+            <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/img3.webp" alt="Login Image" class="img-fluid rounded" style="object-fit: cover; max-height: 500px;">
+        </div>
+    </div>
+</div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>
+    // Validations
+    const vEmail = $('#email');
+    const vPassword = $('#password');
+
+    vEmail.on('input', function () {
+        if (vEmail.val().trim() === '') {
+            vEmail.next().css('display', 'block');
+        } else {
+            vEmail.next().css('display', 'none');
+        }
+    });
+    vPassword.on('input',function() {
+        if (vPassword.val().trim() === '') {
+            vPassword.next().css('display', 'block');
+        } else {
+            vPassword.next().css('display', 'none');
+        }
+    });
+    
+
+    const loginForm = $('#loginForm');
+    const statusMessage = $('#statusMessage');
+    const currentURL = 'https://localhost:7110';
+    const loginURL = currentURL + '/api/UserAuth/Login';
+    loginForm.on('submit',function(e){
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(this));
+        $.ajax({
+            url: loginURL,
+            type: 'POST',
+            data: JSON.stringify(data),
+            contentType: 'application/json',
+            success: function(response){
+                if(response.success){
+                    localStorage.setItem('token', response.token); // save JWT token
+                    statusMessage.html(`<div class="alert alert-success">${response.message}</div>`);
+                    window.location.href = '/Home/Index';
+                } 
+                else {
+                    statusMessage.html(`<div class="alert alert-danger">${response.message}</div>`);
+                }
+            },
+            error: function(err){
+                // Check for 401 Unauthorized status code
+                if (err.status === 401) {
+                    const result = err.responseJSON; // Parse the JSON response if possible
+                    const message = result?.message || "Invalid username or password";
+                    $("#statusMessage").html(`<div class="alert alert-danger">${message}</div>`);
+                } else {
+                    // For other errors
+                    $("#statusMessage").html(`<div class="alert alert-danger">An error occurred. Please try again later.</div>`);
+                }
+                
+            }
+        });
+    });
+</script>
