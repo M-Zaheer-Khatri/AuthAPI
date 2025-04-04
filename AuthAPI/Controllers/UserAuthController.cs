@@ -77,7 +77,7 @@ namespace AuthAPI.Controllers
             var result = await _userAuthRepo.PasswordSignInUserAsync<LoginModel>(loginModel);
             if (result == null)
             {
-                return Unauthorized(new { success = false, message = "Your are not registered" });
+                return Unauthorized(new { success = false, message = "You are not registered" });
             }
             if (result.IsNotAllowed)
             {
