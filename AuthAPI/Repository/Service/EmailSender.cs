@@ -23,7 +23,7 @@ namespace AuthAPI.Repository.Service
                 var email = model?.GetType().GetProperty("Email")?.GetValue(model, null)?.ToString() ?? string.Empty;
                 EmailSettingModel emailSetting = new EmailSettingModel()
                 {
-                    SecretKey = _configuration.GetValue<string>("AppSettings:SecreatKey") ?? string.Empty,
+                    SecretKey = _configuration.GetValue<string>("AppSettings:SecretKey") ?? string.Empty,
                     Port = _configuration.GetValue<int>("AppSettings:EmailSettings:Port"),
                     SmtpServer = _configuration.GetValue<string>("AppSettings:EmailSettings:SmtpServer") ?? string.Empty,
                     EnablSSl = Convert.ToBoolean(_configuration["AppSettings:EmailSettings:EnablSSl"]),
