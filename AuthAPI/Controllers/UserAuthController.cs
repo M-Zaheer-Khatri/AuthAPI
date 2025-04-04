@@ -1,5 +1,6 @@
 ﻿using AuthAPI.Data;
 using AuthAPI.Models;
+using AuthAPI.Repository.Interface;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -15,15 +16,20 @@ namespace AuthAPI.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IEmailSender _emailSender;
+        private readonly IUserAuth _userAuthRepo;
         private readonly string? _JwtKey;
         private readonly string? _JwtIssuer;
         private readonly string? _JwtAudience;
         private readonly int _JwtExpiry;
 
-        public UserAuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration)
+        public UserAuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration,
+            IEmailSender emailSender, IUserAuth userAuthRepo)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _emailSender = emailSender;
+            _userAuthRepo = userAuthRepo;
             _JwtKey = configuration["Jwt:Key"];
             _JwtIssuer = configuration["Jwt:Issuer"];
             _JwtAudience = configuration["Jwt:Audience"];
@@ -37,44 +43,60 @@ namespace AuthAPI.Controllers
             {
                 return BadRequest("Invalid Registration details");
             }
-            var existingUser = await _userManager.FindByEmailAsync(registerModel.Email);
+            //var existingUser = await _userManager.FindByEmailAsync(registerModel.Email);
+            var existingUser = await _userAuthRepo.FindByUserEmailAsync<ApplicationUser>(registerModel.Email);
             if (existingUser != null)
             {
                 return Conflict("Email already Exist");
             }
 
-            var user = new ApplicationUser
-            {
-                UserName = registerModel.Email,
-                Email = registerModel.Email,
-                Name = registerModel.Name,
-            };
-
-            var result = await _userManager.CreateAsync(user, registerModel.Password);
+            //var result = await _userManager.CreateAsync(user, registerModel.Password);
+            var result = await _userAuthRepo.CreateUserAsync(registerModel);
             if (!result.Succeeded)
             {
                 return BadRequest(result.Errors);
             }
-            return Ok("User Created Successfully!");
+            else
+            {
+                
+                //await _emailSender.SendEmailAsync(registerModel, "Registration Successful", "You have successfully registered to our system");
+                await _emailSender.SendEmailAsync<RegisterModel>(registerModel, "Registration Successful", "You have successfully registered to our system");
+            }
+                return Ok("User Created Successfully!");
         }
 
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginModel loginModel)
         {
-            var user = await _userManager.FindByEmailAsync(loginModel.Email);
+            var user = await _userAuthRepo.FindByUserEmailAsync<ApplicationUser>(loginModel.Email);
             if (user == null)
             {
                 return Unauthorized(new { success = false, message = "Invalid username or password" });
             }
 
-            var result = await _signInManager.CheckPasswordSignInAsync(user, loginModel.Password, false);
-            if (!result.Succeeded)
+            var result = await _userAuthRepo.PasswordSignInUserAsync<LoginModel>(loginModel);
+            if (result == null)
+            {
+                return Unauthorized(new { success = false, message = "Your are not registered" });
+            }
+            if (result.IsNotAllowed)
+            {
+                return Unauthorized(new { success = false, message = "User is not allowed to login" });
+            }
+            else if (result.IsLockedOut)
+            {
+                return Unauthorized(new { success = false, message = "User is locked out" });
+            }
+            else if (!result.Succeeded)
             {
                 return Unauthorized(new { success = false, message = "Invalid username or password" });
             }
-
-            var token = GeneratedJwtToken(user);
-            return Ok(new { success = true, token, message = "Login Successfull!" });
+            else
+            {
+                var token = GeneratedJwtToken(user);
+                HttpContext.Session.SetString("UserEmail", user.Email ?? string.Empty);
+                return Ok(new { success = true, token, userName = user.Name, message = "Login Successfull!" });
+            }
         }
 
         [HttpPost("Logout")]
