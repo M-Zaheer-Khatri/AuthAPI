@@ -38,6 +38,12 @@
                             <span class="text-danger small" style="display:block;">Password is required!</span>
                         </div>
 
+                        <!-- Remember Me Checkbox -->
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe">
+                            <label class="form-check-label" for="rememberMe">Remember Me</label>
+                        </div>
+
                         <!-- Submit Button -->
                         <div class="mb-3">
                             <button type="submit" class="btn btn-info w-100">Login</button>
@@ -90,6 +96,8 @@
     loginForm.on('submit',function(e){
         e.preventDefault();
         const data = Object.fromEntries(new FormData(this));
+        data.rememberMe = document.getElementById('rememberMe').checked;
+
         $.ajax({
             url: loginURL,
             type: 'POST',
@@ -98,6 +106,7 @@
             success: function(response){
                 if(response.success){
                     localStorage.setItem('token', response.token); // save JWT token
+                    localStorage.setItem('UserName',response.userName); // save user email
                     statusMessage.html(`<div class="alert alert-success">${response.message}</div>`);
                     window.location.href = '/Home/Index';
                 } 

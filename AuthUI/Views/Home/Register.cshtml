@@ -89,9 +89,9 @@
         });
         if(response.ok){
             statusMessage.innerHTML = '<div class="alert alert-success">Registration successful!  Redirecting to login page...</div>';
-            // setTimeout(() => {
-            //     window.location.href = '/auth/login';
-            // }, 2000);
+            setTimeout(() => {
+                window.location.href = '/Home/Login';
+            }, 2000);
         } else {
             statusMessage.innerText = result.message;
         }

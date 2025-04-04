@@ -1,4 +1,6 @@
 using AuthAPI.Data;
+using AuthAPI.Repository.Interface;
+using AuthAPI.Repository.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +39,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredLength = 1;
     options.Password.RequiredUniqueChars = 0;
+    options.User.RequireUniqueEmail = true;
+    options.SignIn.RequireConfirmedEmail = false;
 }).AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 // Jwt Configuration
@@ -57,6 +61,8 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
 });
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.AddScoped<IUserAuth, UserAuthRepository>();
 
 var app = builder.Build();
 
