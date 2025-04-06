@@ -26,7 +26,7 @@ namespace AuthAPI.Repository.Service
                     SecretKey = _configuration.GetValue<string>("AppSettings:SecretKey") ?? string.Empty,
                     Port = _configuration.GetValue<int>("AppSettings:EmailSettings:Port"),
                     SmtpServer = _configuration.GetValue<string>("AppSettings:EmailSettings:SmtpServer") ?? string.Empty,
-                    EnablSSl = Convert.ToBoolean(_configuration["AppSettings:EmailSettings:EnablSSl"]),
+                    EnableSsl = Convert.ToBoolean(_configuration["AppSettings:EmailSettings:EnablSSl"]),
                     From = _configuration.GetValue<string>("AppSettings:EmailSettings:From") ?? string.Empty
                 };
                 MailMessage mail = new MailMessage()
@@ -40,7 +40,7 @@ namespace AuthAPI.Repository.Service
                 {
                     Port = emailSetting.Port,
                     Credentials = new NetworkCredential(emailSetting.From, emailSetting.SecretKey),
-                    EnableSsl = emailSetting.EnablSSl
+                    EnableSsl = emailSetting.EnableSsl
                 };
                 await smtpClient.SendMailAsync(mail);
                 status = true;

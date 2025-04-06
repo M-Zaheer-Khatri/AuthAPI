@@ -94,7 +94,6 @@ namespace AuthAPI.Controllers
             else
             {
                 var token = GeneratedJwtToken(user);
-                HttpContext.Session.SetString("UserEmail", user.Email ?? string.Empty);
                 return Ok(new { success = true, token, userName = user.Name, message = "Login Successfull!" });
             }
         }
